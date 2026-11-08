@@ -1,0 +1,114 @@
+/* Collapsible Folder Tree Styling */
+
+.tree-list,
+.tree-sublist {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.tree-sublist {
+  padding-left: 14px;
+  position: relative;
+}
+
+.tree-sublist::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--border-subtle);
+}
+
+.tree-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin: 1px 8px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  transition: all 0.12s ease;
+}
+
+.tree-node:hover {
+  background-color: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.tree-node.selected {
+  background-color: var(--accent-dim);
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.tree-toggle {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: transform 0.15s ease;
+}
+
+.tree-toggle:hover {
+  color: var(--text-primary);
+}
+
+.tree-toggle.empty {
+  visibility: hidden;
+}
+
+.tree-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.tree-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.tree-node.selected .tree-icon {
+  color: var(--accent-color);
+}
+
+.tree-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-badge {
+  font-size: 10.5px;
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* Empty folders: de-emphasised by colour, not opacity, so text keeps 4.5:1 contrast */
+.tree-node.empty-folder .tree-label {
+  color: var(--text-muted);
+}
+
+.tree-sublist.hidden {
+  display: none;
+}

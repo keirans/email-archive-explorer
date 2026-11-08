@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" width="1000" height="380" role="img" aria-labelledby="title desc">
+  <title id="title">How an archive's format is detected</title>
+  <desc id="desc">A path is probed by each registered driver in order (PST magic bytes, MBOX envelope line, EML folder structure); if none match, the file extension is tried; otherwise a ValueError is raised.</desc>
+  <style>
+    svg { --bg:#ffffff; --panel:#f6f8fa; --line:#d0d7de; --text:#1f2328; --muted:#59636e;
+          --blue:#0969da; --green:#1a7f37; --amber:#9a6700; --purple:#8250df; --red:#cf222e; }
+    @media (prefers-color-scheme: dark) {
+      svg { --bg:#0d1117; --panel:#161b22; --line:#3d444d; --text:#e6edf3; --muted:#9198a1;
+            --blue:#4493f8; --green:#3fb950; --amber:#d29922; --purple:#a371f7; --red:#f85149; }
+    }
+    .bg { fill: var(--bg); }
+    .zone { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+    .card { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+    .blue   { fill: var(--blue);   fill-opacity: .09; stroke: var(--blue);   stroke-width: 1.5; }
+    .green  { fill: var(--green);  fill-opacity: .09; stroke: var(--green);  stroke-width: 1.5; }
+    .amber  { fill: var(--amber);  fill-opacity: .10; stroke: var(--amber);  stroke-width: 1.5; }
+    .purple { fill: var(--purple); fill-opacity: .09; stroke: var(--purple); stroke-width: 1.5; }
+    .red    { fill: var(--red);    fill-opacity: .09; stroke: var(--red);    stroke-width: 1.5; }
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; fill: var(--text); }
+    .h  { font-size: 15px; font-weight: 700; }
+    .b  { font-size: 14px; font-weight: 600; }
+    .s  { font-size: 12.5px; fill: var(--muted); }
+    .m  { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .mb { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; font-weight: 700; }
+    .warn { fill: var(--red); }
+    .arr { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+    .dash { stroke: var(--red); stroke-width: 1.4; stroke-dasharray: 5 4; fill: none; }
+    .ah { fill: var(--muted); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="ah" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1000" height="380" rx="14"/>
+
+  <rect class="zone" x="20" y="150" width="170" height="80" rx="10"/>
+  <text class="b" x="36" y="178">Archive path</text>
+  <text class="s" x="36" y="200">Open dialog · scan</text>
+  <text class="s" x="36" y="218">CLI · startup</text>
+  <text class="s warn" x="20" y="256">missing →</text>
+  <text class="s warn" x="20" y="274">FileNotFoundError</text>
+
+  <path class="arr" d="M190 190 H228" marker-end="url(#a)"/>
+
+  <rect class="blue" x="230" y="20" width="380" height="340" rx="10"/>
+  <text class="h" x="246" y="46">Pass 1 — content probe</text>
+  <text class="s" x="246" y="66">first match wins, in registration order</text>
+
+  <rect class="card" x="250" y="80" width="340" height="80" rx="8"/>
+  <text class="b" x="266" y="104">① PstDriver</text>
+  <text class="m" x="266" y="126">bytes 0–3 = 21 42 44 4E  "!BDN"</text>
+  <text class="s" x="266" y="146">header wVer → ANSI / Unicode, PST / OST</text>
+
+  <rect class="card" x="250" y="172" width="340" height="80" rx="8"/>
+  <text class="b" x="266" y="196">② MboxDriver</text>
+  <text class="m" x="266" y="218">From &lt;addr&gt; Mon Jan 1 … 2001</text>
+  <text class="s" x="266" y="238">envelope line with a 4-digit year</text>
+
+  <rect class="card" x="250" y="264" width="340" height="80" rx="8"/>
+  <text class="b" x="266" y="288">③ EmlDirDriver</text>
+  <text class="m" x="266" y="310">*.eml files  or  cur/ + new/</text>
+  <text class="s" x="266" y="330">a folder, one level down, or a single .eml</text>
+
+  <path class="arr" d="M610 83 H658" marker-end="url(#a)"/>
+  <text class="s" x="616" y="74">match</text>
+
+  <rect class="green" x="660" y="40" width="320" height="86" rx="10"/>
+  <text class="b" x="676" y="68">Driver instance (not yet opened)</text>
+  <text class="s" x="676" y="90">PstDriver · MboxDriver · EmlDirDriver</text>
+  <text class="s" x="676" y="110">format_type is stored in catalog.db</text>
+
+  <path class="arr" d="M610 210 H658" marker-end="url(#a)"/>
+  <text class="s" x="614" y="202">no match</text>
+
+  <rect class="amber" x="660" y="170" width="320" height="80" rx="10"/>
+  <text class="b" x="676" y="196">Pass 2 — extension fallback</text>
+  <text class="m" x="676" y="218">.pst .ost .mbox .mbx .eml</text>
+  <text class="s" x="676" y="238">files only</text>
+
+  <path class="arr" d="M820 170 V128" marker-end="url(#a)"/>
+  <text class="s" x="828" y="154">match</text>
+
+  <path class="arr" d="M820 250 V288" marker-end="url(#a)"/>
+  <text class="s" x="828" y="274">no match</text>
+
+  <rect class="red" x="660" y="290" width="320" height="60" rx="10"/>
+  <text class="b" x="676" y="316">ValueError</text>
+  <text class="s" x="676" y="336">"Unsupported archive format" → HTTP 400</text>
+</svg>

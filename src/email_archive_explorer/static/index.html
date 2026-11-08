@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="eae-token" content="">
+  <title>Email Archive Explorer</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/static/css/tree.css">
+  <link rel="stylesheet" href="/static/css/attachments.css">
+  <link rel="stylesheet" href="/static/css/shell.css">
+</head>
+<body>
+  <!-- Top Navbar -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-icon"><img class="brand-logo" src="/static/favicon.svg" alt="" width="28" height="28"></span>
+      <div>
+        <h1 class="brand-title">Email Archive Explorer</h1>
+        <div id="brand-subtitle" class="brand-subtitle">Loading archive...</div>
+      </div>
+    </div>
+
+    <!-- View tabs (Spec 09) -->
+    <nav class="view-tabs" role="tablist" aria-label="View">
+      <button id="tab-mail" class="view-tab active" role="tab" aria-selected="true" title="Mail view (g then m)"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-mail"></use></svg> Mail</button>
+      <button id="tab-attachments" class="view-tab" role="tab" aria-selected="false" title="Attachment explorer (g then a)"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-clip"></use></svg> Attachments</button>
+    </nav>
+
+    <!-- Archive Switcher Menu -->
+    <div class="archive-switcher">
+      <button id="archive-menu-btn" class="btn-archive-menu" title="Switch archive">
+        <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-folder"></use></svg> <span id="archive-menu-label">Archives</span> ▾
+      </button>
+      <div id="archive-dropdown" class="archive-dropdown hidden">
+        <div id="archive-list" class="archive-list">
+          <!-- Injected by JS -->
+        </div>
+        <div class="archive-dropdown-divider"></div>
+        <button id="open-file-btn" class="archive-action-btn"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-folder-open"></use></svg> Open archive…</button>
+        <button id="rescan-btn" class="archive-action-btn"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-refresh"></use></svg> Rescan data folder</button>
+      </div>
+    </div>
+
+    <!-- Global Search -->
+    <div class="search-container">
+      <span class="search-icon"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-search"></use></svg></span>
+      <input
+        type="text"
+        id="search-input"
+        class="search-input"
+        placeholder="Search all emails (press '/' to focus)..."
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button id="search-clear" class="search-clear" title="Clear search">✕</button>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button id="filter-drawer-toggle" class="btn-icon" title="Toggle advanced filters"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-filter"></use></svg> Filters</button>
+      <button id="analytics-btn" class="btn-icon" title="Archive analytics &amp; timeline" aria-label="Analytics"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-chart"></use></svg></button>
+      <button id="inspector-btn" class="btn-icon" title="Archive Inspector (i)" aria-label="Archive Inspector"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-info"></use></svg></button>
+      <button id="help-btn" class="btn-icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-help"></use></svg></button>
+      <button id="theme-toggle" class="btn-icon" title="Toggle dark/light theme" aria-label="Toggle theme"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-sun"></use></svg></button>
+    </div>
+  </header>
+
+  <!-- Advanced Filters Drawer -->
+  <div id="filter-drawer" class="filter-drawer hidden">
+    <div class="filter-group">
+      <label for="filter-date-from">From:</label>
+      <input type="date" id="filter-date-from" class="filter-input">
+    </div>
+    <div class="filter-group">
+      <label for="filter-date-to">To:</label>
+      <input type="date" id="filter-date-to" class="filter-input">
+    </div>
+    <div class="filter-group">
+      <label for="filter-sender">Sender:</label>
+      <input type="text" id="filter-sender" class="filter-input" placeholder="e.g. Alex, Priya">
+    </div>
+    <div class="filter-group">
+      <label for="filter-att-type">Attachment:</label>
+      <select id="filter-att-type" class="filter-select">
+        <option value="">All Formats</option>
+        <option value="pdf">PDF (.pdf)</option>
+        <option value="doc">Word (.doc)</option>
+        <option value="xls">Excel (.xls)</option>
+        <option value="jpg">Images (.jpg, .gif)</option>
+        <option value="txt">Text & Logs (.txt)</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button id="btn-apply-filters" class="btn-filter-apply">Apply</button>
+      <button id="btn-reset-filters" class="btn-filter-reset">Reset</button>
+    </div>
+  </div>
+
+  <!-- 3-Pane Main Layout -->
+  <main id="mail-view" class="main-container">
+    <!-- Pane 1: Folders Sidebar -->
+    <aside class="sidebar-pane">
+      <div class="pane-header">
+        <span>Folders</span>
+      </div>
+      <div id="tree-container" class="tree-container">
+        <!-- Folder Tree Injected Here -->
+      </div>
+      <div class="sidebar-footer">
+        <span id="archive-status">Connected</span>
+      </div>
+    </aside>
+    <div class="splitter" data-split="sidebar" role="separator" aria-orientation="vertical" aria-label="Resize folders pane" tabindex="0"></div>
+
+    <!-- Pane 2: Message List -->
+    <section class="list-pane">
+      <div class="list-toolbar">
+        <div class="list-title-box">
+          <span id="list-title" class="list-title">All Emails</span>
+          <span id="list-count" class="list-count">(0)</span>
+        </div>
+        <div class="list-controls">
+          <button id="export-zip-btn" class="btn-filter-toggle" title="Export emails as ZIP archive">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-archive"></use></svg> ZIP
+          </button>
+          <button id="filter-att-btn" class="btn-filter-toggle" title="Filter emails with attachments">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-clip"></use></svg> Only
+          </button>
+          <select id="sort-select" class="select-compact" title="Sort emails" aria-label="Sort emails">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="sender">Sender (A-Z)</option>
+            <option value="subject">Subject (A-Z)</option>
+          </select>
+        </div>
+      </div>
+
+      <ul id="message-list" class="message-list" role="listbox" aria-label="Messages">
+        <!-- Message Cards Injected Here -->
+      </ul>
+
+      <div class="list-pagination">
+        <button id="prev-btn" class="pager-btn" disabled>‹ Prev</button>
+        <span id="page-label">Page 1 of 1</span>
+        <button id="next-btn" class="pager-btn" disabled>Next ›</button>
+        <span id="status-right" class="status-right-label"></span>
+      </div>
+    </section>
+    <div class="splitter" data-split="list" role="separator" aria-orientation="vertical" aria-label="Resize message list" tabindex="0"></div>
+
+    <!-- Pane 3: Reading Pane -->
+    <section id="view-pane" class="view-pane">
+      <!-- Reading View Injected Here -->
+    </section>
+  </main>
+
+  <!-- Attachment Explorer (Spec 09) -->
+  <main id="attachments-view" class="att-view view-hidden" aria-label="Attachment explorer"></main>
+
+  <!-- Image Lightbox Modal -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" title="Close preview">✕</button>
+      <img src="" alt="Attachment Preview" class="modal-img">
+      <div class="modal-caption"></div>
+    </div>
+  </div>
+
+  <!-- Text / Code Document Modal -->
+  <div id="doc-modal" class="modal-overlay">
+    <div class="modal-content doc-modal-content">
+      <div class="doc-modal-header">
+        <span id="doc-modal-title" class="doc-modal-title">Document Preview</span>
+        <div class="doc-modal-actions">
+          <a id="doc-modal-download" href="" class="btn-att-action" title="Download" aria-label="Download"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-download"></use></svg></a>
+          <button id="doc-modal-close" class="modal-close-btn" title="Close">✕</button>
+        </div>
+      </div>
+      <div id="doc-modal-body" class="doc-modal-body">
+        <pre><code id="doc-modal-code"></code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Dashboard Modal -->
+  <div id="analytics-modal" class="modal-overlay">
+    <div class="modal-content analytics-modal-content">
+      <div class="doc-modal-header">
+        <span id="analytics-modal-title" class="doc-modal-title"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-chart"></use></svg> Archive Analytics &amp; Timeline</span>
+        <button id="analytics-modal-close" class="modal-close-btn" title="Close">✕</button>
+      </div>
+      <div id="analytics-modal-body" class="analytics-modal-body">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- File Browser (Spec 08 §4.3) -->
+  <dialog id="file-browser" class="fb-dialog" aria-label="Open archive"></dialog>
+
+  <!-- Archive Inspector (Spec 08 §4.4) -->
+  <aside id="inspector" class="inspector" aria-label="Archive Inspector" aria-hidden="true"></aside>
+
+  <!-- Keyboard shortcuts (?) -->
+  <dialog id="help-dialog" class="help-dialog" aria-label="Keyboard shortcuts">
+    <form method="dialog">
+      <header class="fb-head"><h2>Keyboard shortcuts</h2>
+        <button class="btn-icon" value="close" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="/static/icons.svg#i-x"></use></svg></button></header>
+      <div class="help-grid">
+        <section><h3>Everywhere</h3><dl>
+          <dt><kbd>g</kbd> <kbd>m</kbd></dt><dd>Mail view</dd>
+          <dt><kbd>g</kbd> <kbd>a</kbd></dt><dd>Attachments view</dd>
+          <dt><kbd>Shift</kbd>+<kbd>O</kbd></dt><dd>Open archive…</dd>
+          <dt><kbd>i</kbd></dt><dd>Archive Inspector</dd>
+          <dt><kbd>?</kbd></dt><dd>This help</dd>
+          <dt><kbd>Esc</kbd></dt><dd>Close dialogs and previews</dd></dl></section>
+        <section><h3>Mail view</h3><dl>
+          <dt><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></dt><dd>Search</dd>
+          <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next / previous message</dd>
+          <dt><kbd>[</kbd> <kbd>]</kbd></dt><dd>Previous / next page</dd>
+          <dt><kbd>e</kbd></dt><dd>Export message as .eml</dd>
+          <dt><kbd>h</kbd></dt><dd>Toggle text / HTML body</dd>
+          <dt><kbd>n</kbd> <kbd>p</kbd></dt><dd>Next / previous in conversation</dd>
+          <dt><kbd>t</kbd></dt><dd>Show / hide conversation</dd>
+          <dt><kbd>Shift</kbd>+<kbd>H</kbd></dt><dd>Compact header</dd></dl></section>
+        <section><h3>Attachments view</h3><dl>
+          <dt><kbd>/</kbd></dt><dd>Filename search</dd>
+          <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next / previous file</dd>
+          <dt><kbd>[</kbd> <kbd>]</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd></dt><dd>Previous / next page</dd>
+          <dt><kbd>Space</kbd></dt><dd>Enlarge preview</dd>
+          <dt><kbd>o</kbd></dt><dd>Open the email it came from</dd>
+          <dt><kbd>d</kbd> <kbd>x</kbd></dt><dd>Download / select for ZIP</dd></dl></section>
+        <section><h3>File browser</h3><dl>
+          <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Move</dd>
+          <dt><kbd>Enter</kbd> <kbd>→</kbd></dt><dd>Open archive / enter folder</dd>
+          <dt><kbd>⌫</kbd> <kbd>←</kbd></dt><dd>Parent folder</dd>
+          <dt>Type</dt><dd>Filter the folder</dd></dl></section>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Archive Switching Overlay -->
+  <div id="switching-overlay" class="switching-overlay hidden">
+    <div class="switching-spinner">
+      <div class="switching-icon"><img class="brand-logo" src="/static/favicon.svg" alt="" width="28" height="28"></div>
+      <div class="switching-label" id="switching-label">Switching archive...</div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <!-- ES modules; app.js imports everything else -->
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

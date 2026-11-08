@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" width="1000" height="380" role="img" aria-labelledby="title desc">
+  <title id="title">Indexing pipeline</title>
+  <desc id="desc">build_index checks the cache, opens the detected driver, records folders then messages, attachments and full-text tokens, writes archive metadata, and builds the derived attachment catalog.</desc>
+  <style>
+    svg { --bg:#ffffff; --panel:#f6f8fa; --line:#d0d7de; --text:#1f2328; --muted:#59636e;
+          --blue:#0969da; --green:#1a7f37; --amber:#9a6700; --purple:#8250df; --red:#cf222e; }
+    @media (prefers-color-scheme: dark) {
+      svg { --bg:#0d1117; --panel:#161b22; --line:#3d444d; --text:#e6edf3; --muted:#9198a1;
+            --blue:#4493f8; --green:#3fb950; --amber:#d29922; --purple:#a371f7; --red:#f85149; }
+    }
+    .bg { fill: var(--bg); }
+    .zone { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+    .card { fill: var(--bg); stroke: var(--line); stroke-width: 1.2; }
+    .blue   { fill: var(--blue);   fill-opacity: .09; stroke: var(--blue);   stroke-width: 1.5; }
+    .green  { fill: var(--green);  fill-opacity: .09; stroke: var(--green);  stroke-width: 1.5; }
+    .amber  { fill: var(--amber);  fill-opacity: .10; stroke: var(--amber);  stroke-width: 1.5; }
+    .purple { fill: var(--purple); fill-opacity: .09; stroke: var(--purple); stroke-width: 1.5; }
+    .red    { fill: var(--red);    fill-opacity: .09; stroke: var(--red);    stroke-width: 1.5; }
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; fill: var(--text); }
+    .h  { font-size: 15px; font-weight: 700; }
+    .b  { font-size: 14px; font-weight: 600; }
+    .s  { font-size: 12.5px; fill: var(--muted); }
+    .m  { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .mb { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; font-weight: 700; }
+    .warn { fill: var(--red); }
+    .arr { stroke: var(--muted); stroke-width: 1.6; fill: none; }
+    .dash { stroke: var(--red); stroke-width: 1.4; stroke-dasharray: 5 4; fill: none; }
+    .ah { fill: var(--muted); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="ah" d="M0,0 L10,5 L0,10 z"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1000" height="380" rx="14"/>
+
+  <rect class="blue" x="20" y="30" width="280" height="116" rx="10"/>
+  <text class="b" x="36" y="58">① Cache check</text>
+  <text class="s" x="36" y="82">fingerprint: size + modified time</text>
+  <text class="s" x="36" y="102">driver_index_version unchanged?</text>
+  <text class="s" x="36" y="122">fresh → open instantly, skip the rest</text>
+
+  <path class="arr" d="M300 88 H358" marker-end="url(#a)"/>
+  <text class="s" x="309" y="80">stale</text>
+
+  <rect class="amber" x="360" y="30" width="280" height="116" rx="10"/>
+  <text class="b" x="376" y="58">② Detect &amp; open driver</text>
+  <text class="m" x="376" y="82">detect_driver(path)</text>
+  <text class="s" x="376" y="102">driver.open() — read-only</text>
+  <text class="s" x="376" y="122">describe() → format label</text>
+
+  <path class="arr" d="M640 88 H698" marker-end="url(#a)"/>
+
+  <rect class="green" x="700" y="30" width="280" height="116" rx="10"/>
+  <text class="b" x="716" y="58">③ Folder pass</text>
+  <text class="m" x="716" y="82">get_folder_paths()</text>
+  <text class="s" x="716" y="102">parent = longest known prefix</text>
+  <text class="s" x="716" y="122">→ folders (depth, message count)</text>
+
+  <path class="arr" d="M840 146 V192" marker-end="url(#a)"/>
+
+  <rect class="green" x="700" y="194" width="280" height="116" rx="10"/>
+  <text class="b" x="716" y="222">④ Message pass</text>
+  <text class="m" x="716" y="246">get_message_for_index()</text>
+  <text class="s" x="716" y="266">→ messages · attachments · FTS5</text>
+  <text class="s" x="716" y="286">committed in batches of 500</text>
+
+  <path class="arr" d="M700 252 H642" marker-end="url(#a)"/>
+
+  <rect class="purple" x="360" y="194" width="280" height="116" rx="10"/>
+  <text class="b" x="376" y="222">⑤ archive_meta</text>
+  <text class="s" x="376" y="246">format · path · fingerprint</text>
+  <text class="s" x="376" y="266">driver_index_version</text>
+  <text class="s" x="376" y="286">indexed_complete = true</text>
+
+  <path class="arr" d="M360 252 H302" marker-end="url(#a)"/>
+
+  <rect class="purple" x="20" y="194" width="280" height="116" rx="10"/>
+  <text class="b" x="36" y="222">⑥ Attachment catalog</text>
+  <text class="s" x="36" y="246">category · duplicates · noise</text>
+  <text class="s" x="36" y="266">derived table, rebuilt when stale</text>
+  <text class="s" x="36" y="286">powers the Attachments view</text>
+
+  <text class="s" x="500" y="350" text-anchor="middle">archive-2003.pst (415 MB): 134 folders, 4,101 messages and 2,068 attachments indexed in about 5 s. A fresh cache opens in under a second.</text>
+</svg>
